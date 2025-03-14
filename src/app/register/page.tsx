@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -15,30 +15,77 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Fungsi untuk menangani perubahan input
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
+  // Validasi input sebelum submit
+  const handleInputValidation = useCallback(() => {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      return "Semua kolom harus diisi";
+    }
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      return "Format email tidak valid";
+    }
+    if (!/^\d{10,13}$/.test(formData.phone)) {
+      return "Nomor HP harus berisi 10-13 digit angka";
+    }
+    if (formData.password.length < 6) {
+      return "Password harus memiliki minimal 6 karakter";
+    }
+    if (formData.password !== formData.confirmPassword) {
+      return "Password dan konfirmasi password harus sama";
+    }
+    return "";
+  }, [formData]);
+
+  // Fungsi submit form
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Password dan konfirmasi password harus sama");
+    const validationError = handleInputValidation();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    const res = await fetch("http://localhost:3001/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const res = await fetch("http://localhost:8000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          password_confirmation: formData.confirmPassword,
+        }),
+      });
 
-    if (res.ok) {
-      router.push("/login");
-    } else {
       const data = await res.json();
-      setError(data.message || "Registrasi gagal");
+
+      if (!res.ok) {
+        throw new Error(data.message || "Registrasi gagal");
+      }
+
+      router.push("/login");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Terjadi kesalahan yang tidak diketahui");
+      }
     }
   };
 
@@ -53,46 +100,29 @@ export default function RegisterPage() {
         <h2 className="text-3xl font-extrabold text-white mb-6">Buat Akun</h2>
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nama Lengkap"
-            onChange={handleChange}
-            required
-            className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            onChange={handleChange}
-            required
-            className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Nomor HP"
-            onChange={handleChange}
-            required
-            className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            onChange={handleChange}
-            required
-            className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Konfirmasi Password"
-            onChange={handleChange}
-            required
-            className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
-          />
+          {["name", "email", "phone", "password", "confirmPassword"].map(
+            (field, index) => (
+              <input
+                key={index}
+                type={
+                  field.includes("password")
+                    ? "password"
+                    : field === "email"
+                    ? "email"
+                    : "text"
+                }
+                name={field}
+                placeholder={
+                  field === "confirmPassword"
+                    ? "Konfirmasi Password"
+                    : field.charAt(0).toUpperCase() + field.slice(1)
+                }
+                onChange={handleChange}
+                required
+                className="peer w-full p-3 border-none rounded-xl bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 caret-white"
+              />
+            )
+          )}
           <motion.button
             type="submit"
             className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white p-3 rounded-xl font-semibold shadow-lg hover:from-red-700 hover:to-orange-600 transition duration-300"
