@@ -21,37 +21,44 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setError("");
+      setLoading(true);
 
-    try {
-      const res = await fetch("http://localhost:3001/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      try {
+        const res = await fetch("http://localhost:8000/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
 
-      if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Login gagal");
+
+        if (!res.ok) {
+          throw new Error(data.message || "Login gagal");
+        }
+
+        const { token, user } = data.data;
+
+        if (mounted) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(user)); // Simpan data user
+        }
+
+        router.push("/dashboard");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+      } finally {
+        setLoading(false);
       }
-
-      const { token } = await res.json();
-
-      // Pastikan token hanya diakses setelah komponen dimount
-      if (mounted) {
-        localStorage.setItem("token", token);
-      }
-
-      router.push("/dashboard");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  }, [formData, router, mounted]);
+    },
+    [formData, router, mounted]
+  );
 
   // Hindari render sebelum komponen dimount untuk menghindari mismatch
   if (!mounted) return null;
@@ -94,7 +101,10 @@ export default function LoginPage() {
           </motion.button>
         </form>
         <p className="text-gray-400 text-sm mt-4">
-          Belum punya akun? <Link href="/register" className="text-red-400 hover:underline">Daftar di sini</Link>
+          Belum punya akun?{" "}
+          <Link href="/register" className="text-red-400 hover:underline">
+            Daftar di sini
+          </Link>
         </p>
       </motion.div>
     </section>
