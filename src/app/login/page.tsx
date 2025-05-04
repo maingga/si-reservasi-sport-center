@@ -49,10 +49,14 @@ export default function LoginPage() {
         if (mounted) {
           localStorage.setItem("token", token);
           localStorage.setItem("user", JSON.stringify(user));
+        
+          if (user.role === "admin") {
+            router.push("/admin");
+          } else {
+            router.push("/user"); 
+          }
         }
-
-        router.push("/admin");
-      } catch (err: unknown) {
+              } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       } finally {
         setLoading(false);
