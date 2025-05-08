@@ -3,8 +3,8 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({

@@ -1,9 +1,9 @@
 // src/app/home/page.tsx
-import Header from "../app/components/Header";
-import Footer from "../app/components/Footer";
-import HeroSection from "../app/components/HeroSection";
-import Features from "../app/components/Features";
-import Testimonial from "../app/components/Testimonial";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import HeroSection from "@/components/HeroSection";
+import Features from "@/components/Features";
+import Testimonial from "@/components/Testimonial";
 
 const HomePage = () => {
   return (
