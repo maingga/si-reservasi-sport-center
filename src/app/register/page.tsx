@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -15,6 +16,8 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,34 +104,88 @@ export default function RegisterPage() {
           <h2 className="text-3xl font-extrabold text-white text-center mb-6">Buat Akun</h2>
           {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {["name", "email", "phone", "password", "confirmPassword"].map((field, index) => (
-              <div key={index} className="flex flex-col gap-1">
-                <label htmlFor={field} className="text-sm text-gray-300 font-medium">
-                  {field === "confirmPassword"
-                    ? "Konfirmasi Password"
-                    : field.charAt(0).toUpperCase() + field.slice(1)}
-                </label>
-                <input
-                  type={
-                    field.includes("password")
-                      ? "password"
-                      : field === "email"
-                      ? "email"
-                      : "text"
-                  }
-                  id={field}
-                  name={field}
-                  placeholder={
-                    field === "confirmPassword"
-                      ? "Konfirmasi Password"
-                      : field.charAt(0).toUpperCase() + field.slice(1)
-                  }
-                  onChange={handleChange}
-                  required
-                  className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
-                />
+            {/* Name */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="name" className="text-sm text-gray-300 font-medium">Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Name"
+                onChange={handleChange}
+                required
+                className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="email" className="text-sm text-gray-300 font-medium">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Email"
+                onChange={handleChange}
+                required
+                className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+              />
+            </div>
+
+            {/* Phone */}
+            <div className="flex flex-col gap-1">
+              <label htmlFor="phone" className="text-sm text-gray-300 font-medium">Phone</label>
+              <input
+                type="text"
+                id="phone"
+                name="phone"
+                placeholder="Nomor HP"
+                onChange={handleChange}
+                required
+                className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1 relative">
+              <label htmlFor="password" className="text-sm text-gray-300 font-medium">Password</label>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                placeholder="Password"
+                onChange={handleChange}
+                required
+                className="p-3 pr-10 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+              />
+              <div
+                className="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-white"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </div>
-            ))}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-1 relative">
+              <label htmlFor="confirmPassword" className="text-sm text-gray-300 font-medium">Konfirmasi Password</label>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Konfirmasi Password"
+                onChange={handleChange}
+                required
+                className="p-3 pr-10 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+              />
+              <div
+                className="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-white"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
+            </div>
+
             <motion.button
               type="submit"
               className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white p-3 rounded-xl font-semibold shadow-lg hover:from-red-700 hover:to-orange-600 transition duration-300"

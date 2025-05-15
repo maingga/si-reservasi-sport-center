@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function LoginPage() {
             Accept: "application/json",
           },
           body: JSON.stringify(formData),
+          credentials: "include",
         });
 
         const data = await res.json();
@@ -47,16 +50,16 @@ export default function LoginPage() {
         const { token, user } = data.data;
 
         if (mounted) {
-          localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
-        
+          localStorage.setItem("token", token); // Simpan token
+          localStorage.setItem("user", JSON.stringify(user)); // Simpan data user
+
           if (user.role === "admin") {
             router.push("/admin");
           } else {
-            router.push("/user"); 
+            router.push("/user");
           }
         }
-              } catch (err: unknown) {
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       } finally {
         setLoading(false);
@@ -80,6 +83,7 @@ export default function LoginPage() {
           <h2 className="text-3xl font-extrabold text-white text-center mb-6">Masuk</h2>
           {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
             <div className="flex flex-col gap-1">
               <label htmlFor="email" className="text-sm text-gray-300 font-medium text-left">
                 Email
@@ -94,20 +98,30 @@ export default function LoginPage() {
                 className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
               />
             </div>
-            <div className="flex flex-col gap-1">
+
+            {/* Password dengan toggle icon */}
+            <div className="flex flex-col gap-1 relative">
               <label htmlFor="password" className="text-sm text-gray-300 font-medium text-left">
                 Password
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 id="password"
                 placeholder="Password"
                 onChange={handleChange}
                 required
-                className="p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
+                className="p-3 pr-10 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 border border-gray-700"
               />
+              <div
+                className="absolute right-3 top-10 cursor-pointer text-gray-400 hover:text-white"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </div>
             </div>
+
+            {/* Tombol Login */}
             <motion.button
               type="submit"
               className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white p-3 rounded-xl font-semibold shadow-lg hover:from-red-700 hover:to-orange-600 transition duration-300 disabled:opacity-50"
@@ -118,6 +132,7 @@ export default function LoginPage() {
               {loading ? "Memproses..." : "Masuk"}
             </motion.button>
           </form>
+
           <p className="text-gray-400 text-sm mt-6 text-center">
             Belum punya akun?{" "}
             <Link href="/register" className="text-red-400 hover:underline">
