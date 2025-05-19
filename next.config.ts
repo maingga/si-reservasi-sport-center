@@ -1,13 +1,24 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['127.0.0.1', 'localhost'], // Menambahkan domain 127.0.0.1 dan localhost
+    // Tambahkan domain ui-avatars.com di sini
+    domains: ['localhost', '127.0.0.1', 'ui-avatars.com'],
+
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+    ],
   },
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
-      use: ["@svgr/webpack"],
+      use: ['@svgr/webpack'],
     });
     return config;
   },

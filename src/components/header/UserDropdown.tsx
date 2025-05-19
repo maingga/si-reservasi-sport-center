@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/app/utils/api';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
-import { Loader2, User as UserIcon, Settings, LifeBuoy, LogOut, Edit3 } from 'lucide-react';
+import { Loader2, User as UserIcon, LogOut, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface User {
@@ -18,7 +18,6 @@ interface User {
 
 export default function UserDropdown() {
   const router = useRouter();
-
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -44,11 +43,9 @@ export default function UserDropdown() {
     fetchUser();
   }, []);
 
-  function closeDropdown() {
-    setIsOpen(false);
-  }
+  const closeDropdown = () => setIsOpen(false);
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     try {
       setLoading(true);
       const response = await api.post('/logout');
@@ -65,102 +62,65 @@ export default function UserDropdown() {
       setLoading(false);
       setIsOpen(false);
     }
-  }
+  };
 
   return (
     <div className="relative inline-block text-left">
       <Button
         onClick={() => setIsOpen(!isOpen)}
         variant="outline"
-        className="flex items-center space-x-2"
+        className="flex items-center gap-2 px-4 py-2 border dark:border-gray-600"
         aria-haspopup="true"
         aria-expanded={isOpen}
+        aria-label="User menu"
       >
-        <UserIcon className="w-5 h-5" />
-        <span>{user ? user.name : 'Loading...'}</span>
+        <UserIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+          {user ? user.name : 'Loading...'}
+        </span>
       </Button>
 
-      <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} className="w-64 mt-2">
+      <Dropdown isOpen={isOpen} onClose={closeDropdown} className="w-64 mt-2">
         {loading ? (
-          <div className="px-4 py-3 flex items-center text-sm text-gray-500">
+          <div className="px-4 py-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
             Memuat data user...
           </div>
         ) : user ? (
           <>
-            {/* Info user */}
-            <DropdownItem
-              tag="button"
-              onClick={() => {}}
-              baseClassName="cursor-default font-semibold px-4 py-2 text-gray-900"
-              className=""
-            >
-              {user.name}
-            </DropdownItem>
-            <DropdownItem
-              tag="button"
-              onClick={() => {}}
-              baseClassName="cursor-default text-sm text-gray-600 px-4 py-1"
-              className=""
-            >
-              Email: {user.email}
-            </DropdownItem>
-            <DropdownItem
-              tag="button"
-              onClick={() => {}}
-              baseClassName="cursor-default text-sm text-gray-600 px-4 py-1 mb-2"
-              className=""
-            >
-              Role: {user.role}
-            </DropdownItem>
+            {/* User Info */}
+            <div className="px-4 py-3">
+              <p className="font-semibold text-gray-800 dark:text-gray-100">{user.name}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">Role: {user.role}</p>
+            </div>
 
-            <hr className="my-1 border-gray-200" />
+            <hr className="border-t border-gray-200 dark:border-gray-600 my-1" />
 
-            {/* Menu links */}
+            {/* Actions */}
             <DropdownItem
               tag="a"
-              href="/profile"
+              href="/admin/profile"
               onClick={closeDropdown}
-              className="flex items-center space-x-2"
+              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
             >
               <Edit3 className="w-4 h-4" />
-              <span>Edit profile</span>
+              <span>Edit Profil</span>
             </DropdownItem>
 
-            <DropdownItem
-              tag="a"
-              href="/settings"
-              onClick={closeDropdown}
-              className="flex items-center space-x-2"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Account settings</span>
-            </DropdownItem>
+            <hr className="border-t border-gray-200 dark:border-gray-600 my-1" />
 
-            <DropdownItem
-              tag="a"
-              href="/support"
-              onClick={closeDropdown}
-              className="flex items-center space-x-2"
-            >
-              <LifeBuoy className="w-4 h-4" />
-              <span>Support</span>
-            </DropdownItem>
-
-            <hr className="my-1 border-gray-200" />
-
-            {/* Sign out */}
             <DropdownItem
               tag="button"
               onClick={handleLogout}
-              className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              <span>Sign out</span>
+              <span>Sign Out</span>
             </DropdownItem>
           </>
         ) : (
-          <div className="px-4 py-3 text-sm text-gray-500">Gagal memuat data user</div>
+          <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">Gagal memuat data user</div>
         )}
       </Dropdown>
     </div>

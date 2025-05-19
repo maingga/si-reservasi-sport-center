@@ -66,20 +66,21 @@ const AppHeader: React.FC = () => {
             )}
           </button>
 
-          <Link href="/" className="lg:hidden">
+          {/* LOGO */}
+          <Link href="/" className="lg:hidden relative w-[154px] h-[32px]">
             <Image
-              width={154}
-              height={32}
-              className="dark:hidden"
               src="/images/logo/logo.svg"
               alt="Logo"
+              fill
+              className="dark:hidden object-contain"
+              priority
             />
             <Image
-              width={154}
-              height={32}
-              className="hidden dark:block"
               src="/images/logo/logo-dark.svg"
               alt="Logo"
+              fill
+              className="hidden dark:block object-contain"
+              priority
             />
           </Link>
 
@@ -103,20 +104,20 @@ const AppHeader: React.FC = () => {
             </svg>
           </button>
         </div>
+
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
-            {/* <!-- Dark Mode Toggler --> */}
+            {/* Dark Mode Toggler */}
             <ThemeToggleButton />
-            {/* <!-- Dark Mode Toggler --> */}
 
+            {/* Notification Menu Area */}
             <NotificationDropdown />
-            {/* <!-- Notification Menu Area --> */}
           </div>
-          {/* <!-- User Area --> */}
+          {/* User Area */}
           <UserDropdown />
         </div>
       </div>
