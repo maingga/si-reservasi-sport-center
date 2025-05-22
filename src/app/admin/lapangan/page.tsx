@@ -1,18 +1,29 @@
 'use client'
 import { useEffect, useState } from "react"
-import { api } from "../../utils/api"
+import { api } from "@/app/utils/api"
 import Link from "next/link"
 import { Dialog } from "@headlessui/react"
+import PageBreadcrumb from "@/components/common/PageBreadCrumb"
+import ComponentCard from "@/components/common/ComponentCard"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import Badge from "@/components/ui/badge/Badge"
 
-type Lapangan = {
-  id: number;
-  name: string;
-  price: number;
-  location: string;
-  capacity: number;
-  type: 'Futsal' | 'Badminton' | 'Basket' | 'Tennis' | 'Voli';
-  status: 'available' | 'booked';
-  photo?: string;
+
+interface Lapangan {
+  id: number
+  name: string
+  price: number
+  location: string
+  capacity: number
+  type: 'Futsal' | 'Badminton' | 'Basket' | 'Tennis' | 'Voli'
+  status: 'Available' | 'Booked'
+  photo?: string
 }
 
 export default function AdminLapanganList() {
@@ -37,6 +48,17 @@ export default function AdminLapanganList() {
     }
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Available':
+        return 'success'
+      case 'Booked':
+        return 'error'
+      default:
+        return 'warning'
+    }
+  }
+
   const handleDelete = async () => {
     if (deleteId === null) return
     setLoading(true)
@@ -54,85 +76,108 @@ export default function AdminLapanganList() {
   }
 
   return (
-    <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-white">
-      <h1 className="text-3xl font-semibold mb-8">Daftar Lapangan</h1>
+    <div>
+      <PageBreadcrumb pageTitle="Manajemen Lapangan" />
+      <div className="space-y-6">
+        <ComponentCard title="Daftar Lapangan">
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="max-w-full overflow-x-auto">
+              <div className="min-w-full">
+                <Table>
+                  <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                    <TableRow>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Nama</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Harga</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Lokasi</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Kapasitas</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Jenis</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Status</TableCell>
+                      <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">Aksi</TableCell>
+                    </TableRow>
+                  </TableHeader>
 
-      {loading ? (
-        <p className="text-center py-10">Loading data lapangan...</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <thead className="bg-gray-700 text-white">
-              <tr>
-                <th className="px-6 py-3 text-left">Nama</th>
-                <th className="px-6 py-3 text-left">Harga</th>
-                <th className="px-6 py-3 text-left">Lokasi</th>
-                <th className="px-6 py-3 text-left">Kapasitas</th>
-                <th className="px-6 py-3 text-left">Jenis</th>
-                <th className="px-6 py-3 text-left">Status</th>
-                <th className="px-6 py-3 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lapanganList.map((lapangan) => (
-                <tr key={lapangan.id} className="border-b hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4">{lapangan.name}</td>
-                  <td className="px-6 py-4">Rp {lapangan.price.toLocaleString()}</td>
-                  <td className="px-6 py-4">{lapangan.location}</td>
-                  <td className="px-6 py-4">{lapangan.capacity} orang</td>
-                  <td className="px-6 py-4">{lapangan.type}</td>
-                  <td className={`px-6 py-4 font-semibold ${lapangan.status === 'available' ? 'text-green-500' : 'text-red-500'}`}>
-                    {lapangan.status}
-                  </td>
-                  <td className="px-6 py-4 text-center flex justify-center gap-2">
-                    <Link
-                      href={`/admin/lapangan/update/${lapangan.id}`}
-                      className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700"
-                    >
-                      Edit
-                    </Link>
-                    <Link
-                      href={`/admin/lapangan/detail/${lapangan.id}`}
-                      className="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700"
-                    >
-                      Detail
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setDeleteId(lapangan.id)
-                        setShowDeleteModal(true)
-                      }}
-                      className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700"
-                    >
-                      Hapus
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                    {loading && (
+                      <TableRow>
+                        <TableCell className="px-5 py-4 text-center">
+                          Loading...
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {!loading && lapanganList.length === 0 && (
+                      <TableRow>
+                        <TableCell className="px-5 py-4 text-center">
+                          Tidak ada lapangan tersedia
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {!loading && lapanganList.map((lapangan) => (
+                      <TableRow key={lapangan.id}>
+                        <TableCell className="px-5 py-4 text-start">{lapangan.name}</TableCell>
+                        <TableCell className="px-5 py-4 text-start">Rp {lapangan.price.toLocaleString()}</TableCell>
+                        <TableCell className="px-5 py-4 text-start">{lapangan.location}</TableCell>
+                        <TableCell className="px-5 py-4 text-start">{lapangan.capacity} orang</TableCell>
+                        <TableCell className="px-5 py-4 text-start">{lapangan.type}</TableCell>
+                        <TableCell className="px-5 py-4 text-start">
+                          <Badge
+                            size="sm"
+                            color={getStatusColor(lapangan.status)}>{lapangan.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-5 py-4 text-center">
+                          <div className="flex justify-center gap-2">
+                            <Link
+                              href={`/admin/lapangan/update/${lapangan.id}`}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-md"
+                            >
+                              Edit
+                            </Link>
+                            <Link
+                              href={`/admin/lapangan/detail/${lapangan.id}`}
+                              className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded-md"
+                            >
+                              Detail
+                            </Link>
+                            <button
+                              onClick={() => {
+                                setDeleteId(lapangan.id)
+                                setShowDeleteModal(true)
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </ComponentCard>
+      </div>
 
       {/* Modal Konfirmasi Hapus */}
       <Dialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-bold">Konfirmasi Hapus</Dialog.Title>
-            <Dialog.Description className="mt-2 text-sm text-gray-500 dark:text-gray-300">
-              Apakah Anda yakin ingin menghapus lapangan ini? Tindakan ini tidak dapat dibatalkan.
+          <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg p-6">
+            <Dialog.Title className="text-lg font-semibold">Konfirmasi Hapus</Dialog.Title>
+            <Dialog.Description className="text-sm text-gray-500 dark:text-gray-300 mb-4">
+              Apakah kamu yakin ingin menghapus lapangan ini? Tindakan ini tidak dapat dibatalkan.
             </Dialog.Description>
-            <div className="mt-4 flex justify-end gap-4">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md"
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-sm rounded-md"
               >
                 Batal
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md"
               >
                 {loading ? 'Menghapus...' : 'Hapus'}
               </button>

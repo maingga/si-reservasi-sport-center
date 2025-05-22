@@ -1,8 +1,29 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { api } from '../../utils/api'
+import { api } from '@/app/utils/api'
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import ComponentCard from "@/components/common/ComponentCard";
+import CheckboxComponents from "@/components/form/form-elements/CheckboxComponents";
+import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
+import DropzoneComponent from "@/components/form/form-elements/DropZone";
+import FileInputExample from "@/components/form/form-elements/FileInputExample";
+import InputGroup from "@/components/form/form-elements/InputGroup";
+import InputStates from "@/components/form/form-elements/InputStates";
+import RadioButtons from "@/components/form/form-elements/RadioButtons";
+import SelectInputs from "@/components/form/form-elements/SelectInputs";
+import TextAreaInput from "@/components/form/form-elements/TextAreaInput";
+import ToggleSwitch from "@/components/form/form-elements/ToggleSwitch";
 import { Dialog } from '@headlessui/react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Badge from "@/components/ui/badge/Badge";
+import Image from "next/image";
 
 interface User {
   id: number
@@ -116,116 +137,128 @@ const UserPage = () => {
     fetchUsers()
   }, [])
 
+  // Default placeholder image when user doesn't have a photo
+  const defaultUserImage = "/images/user/user-17.jpg"
+
   return (
-    <div className="p-6 md:p-10 bg-gray-100 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-100">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Manajemen Pengguna</h1>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Cari nama/email..."
-          className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-        />
-      </div>
+    
+    <div>
+      <PageBreadcrumb pageTitle="Manajemen Pengguna" />
+      <div className="space-y-">
+        {/* Tabel Pengguna */}
+        <ComponentCard title="Daftar Pengguna">
+          <div className="mb-4">
+            {/* <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Cari nama/email..."
+              className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 w-full md:w-64"
+            /> */}
+          </div>
+          
+          <div className="grid md:grid-cols-7 gap-8">
+            {/* Daftar Pengguna (5/7 columns) */}
+            <div className="md:col-span-12 -mt-4">
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                <div className="max-w-full overflow-x-auto">
+                  <div className="min-w-full">
+                    <Table>
+                      {/* Table Header */}
+                      <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                        <TableRow>
+                          <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                          >
+                            Pengguna
+                          </TableCell>
+                          <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                          >
+                            Telepon
+                          </TableCell>
+                          <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                          >
+                            Status
+                          </TableCell>
+                          <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                          >
+                            Aksi
+                          </TableCell>
+                        </TableRow>
+                      </TableHeader>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Daftar Pengguna */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Daftar Pengguna</h2>
-          {loading && <p>Loading...</p>}
-          <ul className="divide-y divide-gray-300 dark:divide-gray-700">
-            {filteredUsers.map((u) => (
-              <li key={u.id} className="py-3 flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{u.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{u.email}</p>
+                      {/* Table Body */}
+                      <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                        {loading && (
+                          <TableRow>
+                            <TableCell className="px-5 py-4 text-center">
+                              Loading...
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {!loading && filteredUsers.length === 0 && (
+                          <TableRow>
+                            <TableCell className="px-5 py-4 text-center">
+                              Tidak ada pengguna yang ditemukan
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {!loading &&
+                          filteredUsers.map((u) => (
+                            <TableRow key={u.id}>
+                              <TableCell className="px-5 py-4 sm:px-6 text-start">
+                                <div className="flex items-center gap-3">
+                                  <div>
+                                    <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                      {u.name}
+                                    </span>
+                                    <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                                      {u.email}
+                                    </span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                {u.phone}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                <Badge
+                                  size="sm"
+                                  color={u.role === "admin" ? "success" : "warning"}
+                                >
+                                  {u.role === "admin" ? "Admin" : "User"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  
+                                  <button
+                                    onClick={() => confirmDelete(u.id)}
+                                    className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => fetchUser(u.id)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-md"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(u.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-md"
-                  >
-                    Hapus
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Form Edit Pengguna */}
-        {user && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Edit Pengguna</h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm mb-1">Nama</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Telepon</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
-                  className="w-full px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <button
-                  onClick={handleUpdate}
-                  disabled={loading}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow disabled:opacity-50"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
-                </button>
-                <button
-                  onClick={resetForm}
-                  className="w-full py-2 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-md shadow"
-                >
-                  Batal
-                </button>
               </div>
             </div>
+
+            
           </div>
-        )}
+        </ComponentCard>
       </div>
 
       {/* Modal Konfirmasi Hapus */}
@@ -258,4 +291,4 @@ const UserPage = () => {
   )
 }
 
-export default UserPage
+export default UserPage;
