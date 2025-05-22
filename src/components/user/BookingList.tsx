@@ -1,11 +1,11 @@
-interface Booking {
+export interface Booking {
   id: number;
   lapangan: {
-    nama: string;
+    name: string;
   } | null;
-  tanggal: string;
-  jam_mulai: string;
-  jam_selesai: string;
+  reservation_date: string;
+  start_time: string;
+  end_time: string;
   status: string;
 }
 
@@ -44,10 +44,10 @@ export default function BookingList({ data }: { data: Booking[] }) {
               key={booking.id}
               className="border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.lapangan?.nama || "-"}</td>
-              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.tanggal}</td>
+              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.lapangan?.name || "-"}</td>
+              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.reservation_date}</td>
               <td className="p-3 border border-gray-200 dark:border-gray-600">
-                {booking.jam_mulai} - {booking.jam_selesai}
+                {booking.start_time} - {booking.end_time}
               </td>
               <td className="p-3 border border-gray-200 dark:border-gray-600">
                 <span

@@ -1,11 +1,12 @@
-// src/app/user/payment/[id]/page.tsx
 import PaymentClient from "./PaymentClient";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function PaymentPage({ params }: PageProps) {
-  const reservationId = params.id;
+export default async function PaymentPage({ params }: PageProps) {
+  const resolvedParams = await params;
+  const reservationId = resolvedParams.id;
+
   return <PaymentClient reservationId={reservationId} />;
 }

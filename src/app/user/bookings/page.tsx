@@ -5,7 +5,7 @@ import axios from "axios";
 import { format, parseISO } from "date-fns";
 
 interface Lapangan {
-  name: string; // ganti dari nama ke name sesuai saran
+  name: string;
 }
 
 interface Booking {
@@ -31,7 +31,6 @@ export default function BookingPage() {
         const res = await axios.get("http://localhost:8000/api/reservations", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Sesuaikan ambil data jika response berbentuk { data: [...] }
         const data = res.data.data ? res.data.data : res.data;
         setBookings(data);
         setError(null);
@@ -112,35 +111,45 @@ export default function BookingPage() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((booking) => (
-                <tr
-                  key={booking.id}
-                  className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors duration-200"
-                >
-                  <td className="p-3 border border-gray-300 dark:border-gray-700">
-                    {booking.lapangan?.name || "-"}
-                  </td>
-                  <td className="p-3 border border-gray-300 dark:border-gray-700">
-                    {/* Format tanggal jadi lebih user friendly */}
-                    {format(parseISO(booking.reservation_date), "dd MMMM yyyy")}
-                  </td>
-                  <td className="p-3 border border-gray-300 dark:border-gray-700">
-                    {/* Format jam 24 jam */}
-                    {booking.start_time} - {booking.end_time}
-                  </td>
-                  <td className="p-3 border border-gray-300 dark:border-gray-700 capitalize">
-                    {booking.status}
-                  </td>
-                  <td className="p-3 border border-gray-300 dark:border-gray-700">
-                    <button
-                      onClick={() => handleDelete(booking.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md transition-colors duration-200"
+              {bookings.map((booking) => {
+                const isPaid = booking.status.toLowerCase() === "confirmed" || booking.status.toLowerCase() === "confirmed";
+
+                return (
+                  <tr
+                    key={booking.id}
+                    className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors duration-200"
+                  >
+                    <td className="p-3 border border-gray-300 dark:border-gray-700">
+                      {booking.lapangan?.name || "-"}
+                    </td>
+                    <td className="p-3 border border-gray-300 dark:border-gray-700">
+                      {format(parseISO(booking.reservation_date), "dd MMMM yyyy")}
+                    </td>
+                    <td className="p-3 border border-gray-300 dark:border-gray-700">
+                      {booking.start_time} - {booking.end_time}
+                    </td>
+                    <td
+                      className={`p-3 border border-gray-300 dark:border-gray-700 capitalize ${
+                        isPaid ? "text-green-600 font-semibold" : ""
+                      }`}
                     >
-                      Batalkan
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      {booking.status}
+                    </td>
+                    <td className="p-3 border border-gray-300 dark:border-gray-700">
+                      {isPaid ? (
+                        <span className="text-gray-500 italic">Sudah dibayar</span>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(booking.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-md transition-colors duration-200"
+                        >
+                          Batalkan
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

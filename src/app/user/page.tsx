@@ -3,22 +3,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CardStats from "@/components/user/CardStats";
-import BookingList from "@/components/user/BookingList";
-
-interface Booking {
-  id: number;
-  lapangan: {
-    nama: string;
-  } | null;
-  tanggal: string;
-  jam_mulai: string;
-  jam_selesai: string;
-  status: string;
-}
+import BookingList, { Booking } from "@/components/user/BookingList";
 
 interface Transaction {
   id: number;
   amount: number;
+  status?: string; // optional, tergantung dari struktur API kamu
 }
 
 interface User {
@@ -27,12 +17,19 @@ interface User {
   email: string;
 }
 
-// Fungsi format rupiah yang ringkas
+// Format uang ke rupiah ringkas
 function formatRupiah(amount: number | string) {
   const num = typeof amount === "string" ? parseInt(amount) : amount;
   if (num >= 1_000_000) return `Rp ${(num / 1_000_000).toFixed(1)} Jt`;
   if (num >= 1_000) return `Rp ${(num / 1_000).toFixed(1)} Rb`;
   return `Rp ${num.toLocaleString("id-ID")}`;
+}
+
+// Gabungkan tanggal dan jam menjadi Date
+function parseDateTime(dateStr: string, timeStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hour, minute] = timeStr.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute);
 }
 
 export default function UserDashboard() {
@@ -66,14 +63,21 @@ export default function UserDashboard() {
 
         const bookings = bookingsRes.data;
         const transaksi = trxRes.data;
+        const now = new Date();
 
-        const totalBooking = bookings.length;
-        const activeBooking = bookings.filter((b) => b.status === "aktif").length;
-        const totalPembayaran = transaksi.reduce((sum, trx) => sum + trx.amount, 0);
+        const activeBooking = bookings.filter((b) => {
+          const isAktif = b.status === "pending" || b.status === "confirmed";
+          const endDateTime = parseDateTime(b.reservation_date, b.end_time);
+          return isAktif && endDateTime >= now;
+        }).length;
+
+        const totalPembayaran = transaksi
+          // .filter((trx) => trx.status === "paid") // Aktifkan jika kamu pakai status
+          .reduce((sum, trx) => sum + Number(trx.amount), 0);
 
         setData({
           user: meRes.data,
-          totalBooking,
+          totalBooking: bookings.length,
           activeBooking,
           totalPembayaran,
           bookings,

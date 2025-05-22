@@ -13,6 +13,7 @@ interface Lapangan {
   id: number;
   name: string;
   photo?: string;
+  price: number;
 }
 
 export default function CreateBookingPage() {
@@ -27,6 +28,7 @@ export default function CreateBookingPage() {
   const [fetching, setFetching] = useState(true);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [totalHarga, setTotalHarga] = useState<number | null>(null);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -40,8 +42,6 @@ export default function CreateBookingPage() {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           toast.error(`Gagal mengambil data lapangan: ${err.response?.data?.message || err.message}`);
-        } else if (err instanceof Error) {
-          toast.error(`Gagal mengambil data lapangan: ${err.message}`);
         } else {
           toast.error("Gagal mengambil data lapangan");
         }
@@ -53,17 +53,77 @@ export default function CreateBookingPage() {
     if (token) fetchLapangan();
   }, [token]);
 
+useEffect(() => {
+  if (
+    !selectedLapangan ||
+    !jamMulai ||
+    !jamSelesai ||
+    !jamMulai.includes(":") ||
+    !jamSelesai.includes(":")
+  ) {
+    setTotalHarga(null);
+    return;
+  }
+
+  const lapangan = lapanganList.find((lap) => lap.id === selectedLapangan);
+  if (!lapangan) return;
+
+  const [startHour, startMinute] = jamMulai.split(":").map(Number);
+  const [endHour, endMinute] = jamSelesai.split(":").map(Number);
+
+  if (
+    isNaN(startHour) || isNaN(startMinute) ||
+    isNaN(endHour) || isNaN(endMinute)
+  ) {
+    setTotalHarga(null);
+    return;
+  }
+
+  // Hitung jam dalam bentuk desimal (contoh: 20.5 = jam 20:30)
+  const startDecimal = startHour + startMinute / 60;
+  const endDecimal = endHour + endMinute / 60;
+
+if (endDecimal <= startDecimal || endDecimal > 22) {
+  setTotalHarga(null);
+  return;
+}
+
+let total = 0;
+
+for (let hour = Math.floor(startDecimal); hour < Math.ceil(endDecimal); hour++) {
+  const segmentStart = Math.max(hour, startDecimal);
+  const segmentEnd = Math.min(hour + 1, endDecimal);
+  const segmentDuration = segmentEnd - segmentStart;
+
+  const isMalam = segmentStart >= 18;
+  const hargaDasar = Number(lapangan.price);  // pastikan jadi number
+  const hargaPerJam = hargaDasar + (isMalam ? 10000 : 0);
+
+  console.log(`Jam: ${hour}, Durasi: ${segmentDuration}, Harga: ${hargaPerJam}`);
+
+  total += hargaPerJam * segmentDuration;
+}
+
+  setTotalHarga(Math.round(total));
+}, [selectedLapangan, jamMulai, jamSelesai, lapanganList]);
+
   useEffect(() => {
+
     const checkAvailability = async () => {
       if (!selectedLapangan || !tanggal || !jamMulai || !jamSelesai) {
         setIsAvailable(null);
         return;
       }
 
-      if (jamMulai >= jamSelesai) {
-        setIsAvailable(false);
-        return;
-      }
+if (jamMulai >= jamSelesai) {
+  toast.error("Jam selesai harus setelah jam mulai");
+  return;
+}
+
+if (jamSelesai > "22:00") {
+  toast.error("Booking tidak boleh melewati jam 22:00 (waktu tutup).");
+  return;
+}
 
       setCheckingAvailability(true);
       try {
@@ -78,15 +138,10 @@ export default function CreateBookingPage() {
         });
         setIsAvailable(res.data.available);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          toast.error(`Gagal cek ketersediaan: ${err.response?.data?.message || err.message}`);
-        } else if (err instanceof Error) {
-          toast.error(`Gagal cek ketersediaan: ${err.message}`);
-        } else {
-          toast.error("Gagal cek ketersediaan lapangan.");
-        }
-        setIsAvailable(null);
-      } finally {
+  console.error(err); // log the error to the console
+  toast.error("Gagal cek ketersediaan lapangan.");
+  setIsAvailable(null);
+} finally {
         setCheckingAvailability(false);
       }
     };
@@ -107,9 +162,13 @@ export default function CreateBookingPage() {
       return;
     }
 
+    if (totalHarga === null) {
+      toast.error("Harga belum bisa dihitung.");
+      return;
+    }
+
     setCheckingAvailability(true);
     try {
-      // Cek ulang availability sebelum submit
       const resCheck = await axios.get("http://localhost:8000/api/reservations/check", {
         params: {
           lapangan_id: selectedLapangan,
@@ -144,6 +203,7 @@ export default function CreateBookingPage() {
           reservation_date: tanggal.toISOString().split("T")[0],
           start_time: jamMulai,
           end_time: jamSelesai,
+          price: totalHarga,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -151,7 +211,6 @@ export default function CreateBookingPage() {
       );
 
       toast.success("Booking berhasil dibuat.");
-
       const reservationId = res.data.reservation.id;
 
       if (reservationId) {
@@ -160,24 +219,15 @@ export default function CreateBookingPage() {
         toast.error("Gagal mendapatkan ID reservasi dari server.");
       }
 
-      // Redirect ke halaman payment dengan reservationId
-      router.push(`/user/payment/${reservationId}`);
-
-      // Reset form (optional, karena sudah redirect)
       setSelectedLapangan(null);
       setTanggal(null);
       setJamMulai("");
       setJamSelesai("");
       setIsAvailable(null);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        toast.error(`Gagal membuat booking: ${err.response?.data?.message || err.message}`);
-      } else if (err instanceof Error) {
-        toast.error(`Gagal membuat booking: ${err.message}`);
-      } else {
-        toast.error("Gagal membuat booking.");
-      }
-    } finally {
+  console.error(err);
+  toast.error("Gagal membuat booking.");
+} finally {
       setLoading(false);
     }
   };
@@ -206,9 +256,7 @@ export default function CreateBookingPage() {
                   <div
                     key={lap.id}
                     className={`relative group cursor-pointer border rounded-lg p-3 shadow-sm transition hover:ring-2 ${
-                      selectedLapangan === lap.id
-                        ? "ring-2 ring-blue-500 border-blue-500"
-                        : "border-gray-300"
+                      selectedLapangan === lap.id ? "ring-2 ring-blue-500 border-blue-500" : "border-gray-300"
                     }`}
                   >
                     <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -231,6 +279,9 @@ export default function CreateBookingPage() {
                         unoptimized
                       />
                       <h3 className="text-md font-medium text-center text-gray-800 dark:text-white">{lap.name}</h3>
+                      <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+                        Harga per jam: Rp{lap.price.toLocaleString("id-ID")}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -243,84 +294,91 @@ export default function CreateBookingPage() {
             <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Formulir Booking</h2>
 
             {selectedLapangan && (
-              <div className="mb-6 flex items-center gap-4">
-                <Image
-                  src={getImageUrl(lapanganList.find((lap) => lap.id === selectedLapangan)?.photo)}
-                  alt="Preview Lapangan"
-                  width={80}
-                  height={80}
-                  className="object-cover rounded-md"
-                />
-                <div>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">Lapangan dipilih:</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {lapanganList.find((lap) => lap.id === selectedLapangan)?.name}
-                  </p>
-                </div>
-              </div>
+              <p className="text-center font-semibold text-gray-800 dark:text-white mb-2">
+                Lapangan: {lapanganList.find((lap) => lap.id === selectedLapangan)?.name || ""}
+              </p>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Tanggal</label>
+                <label htmlFor="tanggal" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Tanggal
+                </label>
                 <DatePicker
+                  id="tanggal"
                   selected={tanggal}
-onChange={(date) => setTanggal(date)}
-className="w-full border rounded-md p-2"
-dateFormat="yyyy-MM-dd"
-minDate={new Date()}
-placeholderText="Pilih tanggal"
-required
-/>
-</div>          <div>
-            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Jam Mulai</label>
-            <input
-              type="time"
-              value={jamMulai}
-              onChange={(e) => setJamMulai(e.target.value)}
-              className="w-full border rounded-md p-2"
-              required
-            />
-          </div>
+                  onChange={(date) => setTanggal(date)}
+                  dateFormat="yyyy-MM-dd"
+                  minDate={new Date()}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  placeholderText="Pilih tanggal"
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Jam Selesai</label>
-            <input
-              type="time"
-              value={jamSelesai}
-              onChange={(e) => setJamSelesai(e.target.value)}
-              className="w-full border rounded-md p-2"
-              required
-            />
-          </div>
+              <div>
+                <label htmlFor="jamMulai" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Jam Mulai (24 jam, format HH:mm)
+                </label>
+                <input
+                  id="jamMulai"
+                  type="time"
+                  value={jamMulai}
+                  onChange={(e) => setJamMulai(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
 
-          <div>
-            {checkingAvailability ? (
-              <p className="text-blue-600">Memeriksa ketersediaan...</p>
-            ) : isAvailable === null ? (
-              <p className="text-gray-600">Silakan pilih lapangan dan waktu.</p>
-            ) : isAvailable ? (
-              <p className="text-green-600 font-semibold">Lapangan tersedia!</p>
-            ) : (
-              <p className="text-red-600 font-semibold">Lapangan tidak tersedia.</p>
-            )}
-          </div>
+              <div>
+                <label htmlFor="jamSelesai" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Jam Selesai (24 jam, format HH:mm)
+                </label>
+                <input
+                  id="jamSelesai"
+                  type="time"
+                  value={jamSelesai}
+                  onChange={(e) => setJamSelesai(e.target.value)}
+                   max="22:00"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  * Tambahan Rp10.000/jam dikenakan setelah pukul 18:00.
+                   * Booking hanya diperbolehkan sampai maksimal pukul 22:00.
+                </p>
+              </div>
 
-          <button
-            type="submit"
-            disabled={loading || checkingAvailability || !isAvailable}
-            className={`w-full py-3 rounded-md font-semibold text-white ${
-              loading || checkingAvailability || !isAvailable
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } transition`}
-          >
-            {loading ? "Membuat Booking..." : "Booking Sekarang"}
-          </button>
-        </form>
+              {checkingAvailability && (
+                <p className="text-blue-600 dark:text-blue-400">Memeriksa ketersediaan...</p>
+              )}
+              {isAvailable !== null && !checkingAvailability && (
+                <p className={isAvailable ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+                  {isAvailable ? "Lapangan tersedia" : "Lapangan sudah terpesan"}
+                </p>
+              )}
+
+{typeof totalHarga === "number" && !isNaN(totalHarga) && (
+  <p className="text-lg font-semibold text-gray-800 dark:text-white mt-4">
+    Total Harga: Rp{totalHarga.toLocaleString("id-ID")}
+  </p>
+)}
+
+              <button
+                type="submit"
+                disabled={loading || !isAvailable}
+                className={`w-full py-3 rounded-md text-white font-semibold ${
+                  loading || !isAvailable
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 transition"
+                }`}
+              >
+                {loading ? "Memproses..." : "Buat Booking"}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
   );
-};
+}

@@ -1,90 +1,118 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { Loader2, CheckCircle, Clock, XCircle } from "lucide-react";
 
 interface Transaction {
   id: number;
-  created_at: string;
+  order_id: string;
   amount: number;
   status: string;
 }
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const apiUrl = "http://localhost:8000/api";
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await axios.get<Transaction[]>("http://localhost:8000/api/transactions", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTransactions(res.data);
-      } catch (err) {
-        console.error("Gagal ambil transaksi:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchTransactions = useCallback(async () => {
+    if (!token) {
+      toast.error("Anda belum login.");
+      return;
+    }
 
-    if (token) fetchTransactions();
+    setLoading(true);
+    try {
+      const res = await axios.get(`${apiUrl}/transactions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setTransactions(res.data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      toast.error("Gagal mengambil data transaksi.");
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
-    try {
-      await axios.delete(`http://localhost:8000/api/transactions/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
-      alert("Transaksi berhasil dihapus");
-    } catch (err) {
-      alert("Gagal menghapus transaksi");
-      console.error(err);
+  const formatPrice = (price: number) => price.toLocaleString("id-ID");
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case "success":
+        return (
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400">
+            <CheckCircle className="w-4 h-4" /> Berhasil
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-yellow-600 dark:text-yellow-400">
+            <Clock className="w-4 h-4" /> Menunggu
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
+            <XCircle className="w-4 h-4" /> Gagal
+          </span>
+        );
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">Riwayat Transaksi</h1>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <Toaster position="top-right" />
 
-      {transactions.length === 0 ? (
-        <p>Tidak ada transaksi ditemukan.</p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Riwayat Transaksi</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Lihat daftar transaksi pembayaran Anda.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium">Memuat...</span>
+        </div>
+      ) : transactions.length === 0 ? (
+        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+          Tidak ada transaksi ditemukan.
+        </div>
       ) : (
-        <table className="w-full text-left text-gray-700 text-sm border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">ID Transaksi</th>
-              <th className="p-2 border">Tanggal</th>
-              <th className="p-2 border">Jumlah</th>
-              <th className="p-2 border">Status</th>
-              <th className="p-2 border">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((trx) => (
-              <tr key={trx.id}>
-                <td className="p-2 border">{trx.id}</td>
-                <td className="p-2 border">{new Date(trx.created_at).toLocaleDateString()}</td>
-                <td className="p-2 border">Rp {trx.amount?.toLocaleString()}</td>
-                <td className="p-2 border capitalize">{trx.status}</td>
-                <td className="p-2 border space-x-2">
-                  <button
-                    onClick={() => handleDelete(trx.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                  >
-                    Hapus
-                  </button>
-                </td>
+        <div className="overflow-x-auto shadow-md rounded-xl border border-gray-200 dark:border-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+            <thead className="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Order ID</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Jumlah</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {transactions.map((tx) => (
+                <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{tx.order_id}</td>
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                    Rp {formatPrice(tx.amount)}
+                  </td>
+                  <td className="px-4 py-3">{statusBadge(tx.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

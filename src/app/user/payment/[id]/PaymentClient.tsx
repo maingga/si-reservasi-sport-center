@@ -15,13 +15,6 @@ interface Reservation {
   status: string;
 }
 
-interface Transaction {
-  id: number;
-  order_id: string;
-  amount: number;
-  status: string;
-}
-
 interface SnapOptions {
   onSuccess: () => void;
   onPending: () => void;
@@ -43,7 +36,6 @@ interface PaymentClientProps {
 
 export default function PaymentClient({ reservationId }: PaymentClientProps) {
   const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -68,24 +60,11 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
     }
   }, [token, reservationId]);
 
-  const fetchTransactions = useCallback(async () => {
-    if (!token) return;
-    try {
-      const res = await axios.get(`${apiUrl}/transactions?reservation_id=${reservationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTransactions(res.data);
-    } catch (error) {
-      console.error("Gagal mengambil transaksi:", error);
-    }
-  }, [token, reservationId]);
-
   useEffect(() => {
     if (token && reservationId) {
       fetchReservation();
-      fetchTransactions();
     }
-  }, [token, reservationId, fetchReservation, fetchTransactions]);
+  }, [token, reservationId, fetchReservation]);
 
   const handlePayment = async () => {
     if (!reservation) return;
@@ -112,10 +91,23 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
 
       if (typeof window !== "undefined" && window.snap) {
         window.snap.pay(snapToken, {
-          onSuccess: () => {
-            toast.success("Pembayaran berhasil!");
-            fetchReservation();
-            fetchTransactions();
+          onSuccess: async () => {
+            toast.success("Pembayaran berhasil! Mengupdate status...");
+
+            try {
+              await axios.put(
+                `${apiUrl}/reservations/${reservation.id}/status`,
+                { status: "confirmed" },
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              toast.success("Status reservasi diperbarui!");
+              window.location.href = "/user/transactions";
+            } catch (error) {
+              console.error(error);
+              toast.error("Gagal memperbarui status reservasi.");
+            }
           },
           onPending: () => {
             toast("Pembayaran dalam proses, silakan selesaikan pembayaran.");
@@ -139,22 +131,48 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
   const formatPrice = (price: number | null | undefined) =>
     price !== null && price !== undefined ? price.toLocaleString() : "-";
 
+  const formatStatus = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Menunggu Pembayaran";
+      case "confirmed":
+        return "Sudah Dikonfirmasi";
+      case "cancelled":
+        return "Dibatalkan";
+      default:
+        return status;
+    }
+  };
+
+  const statusBadgeColor = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100";
+      case "cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100";
+      default:
+        return "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200";
+    }
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold">Memuat data...</p>
+        <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">Memuat data...</p>
       </div>
     );
 
   if (!reservation)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600 font-semibold">Reservasi tidak ditemukan.</p>
+        <p className="text-red-600 dark:text-red-400 font-semibold">Reservasi tidak ditemukan.</p>
       </div>
     );
 
   return (
-    <div className="max-w-3xl mx-auto p-8">
+    <div className="max-w-4xl mx-auto p-6 sm:p-10">
       <Toaster position="top-right" />
       <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
@@ -162,79 +180,75 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
         strategy="afterInteractive"
       />
 
-      <h1 className="text-3xl font-bold mb-6">Pembayaran Reservasi</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Pembayaran Reservasi</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Pastikan informasi di bawah ini sudah benar sebelum melanjutkan pembayaran.
+        </p>
+      </div>
 
-      <div className="bg-white p-6 rounded-md shadow-md space-y-4">
-        <p>
-          <strong>Lapangan:</strong> {reservation.lapangan_name}
-        </p>
-        <p>
-          <strong>Tanggal:</strong> {reservation.reservation_date}
-        </p>
-        <p>
-          <strong>Waktu:</strong> {reservation.start_time} - {reservation.end_time}
-        </p>
-        <p>
-          <strong>Harga:</strong> Rp {formatPrice(reservation.price)}
-        </p>
-        <p>
-          <strong>Status:</strong>{" "}
-          <span className={reservation.status === "paid" ? "text-green-600" : "text-red-600"}>
-            {reservation.status}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md dark:shadow-gray-700 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-gray-500 dark:text-gray-400">Lapangan</p>
+            <p className="font-medium text-gray-800 dark:text-gray-100">{reservation.lapangan_name}</p>
+          </div>
+
+          <div>
+            <p className="text-gray-500 dark:text-gray-400">Tanggal</p>
+            <p className="font-medium text-gray-800 dark:text-gray-100">{reservation.reservation_date}</p>
+          </div>
+
+          <div>
+            <p className="text-gray-500 dark:text-gray-400">Waktu</p>
+            <p className="font-medium text-gray-800 dark:text-gray-100">
+              {reservation.start_time} - {reservation.end_time}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-gray-500 dark:text-gray-400">Harga</p>
+            <p className="font-medium text-gray-800 dark:text-gray-100">Rp {formatPrice(reservation.price)}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">Status</p>
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusBadgeColor(
+              reservation.status
+            )}`}
+          >
+            {formatStatus(reservation.status)}
           </span>
-        </p>
+        </div>
 
-        {reservation.status !== "paid" && (
+        {reservation.status === "pending" && (
           <button
             onClick={handlePayment}
             disabled={loading}
-            className={`mt-4 px-6 py-3 rounded-md font-semibold text-white ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            } transition`}
+            className={`w-full sm:w-auto mt-4 inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-white transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            }`}
           >
             {loading ? "Memproses Pembayaran..." : "Bayar Sekarang"}
           </button>
         )}
 
-        {reservation.status === "paid" && (
-          <p className="text-green-700 font-semibold">Pembayaran sudah diterima. Terima kasih!</p>
+        {reservation.status === "confirmed" && (
+          <div className="mt-4 text-green-700 dark:text-green-400 font-semibold">
+            Pembayaran telah diterima dan reservasi dikonfirmasi. Terima kasih!
+          </div>
+        )}
+
+        {reservation.status === "cancelled" && (
+          <div className="mt-4 text-red-700 dark:text-red-400 font-semibold">
+            Reservasi ini telah dibatalkan.
+          </div>
         )}
       </div>
-
-      <hr className="my-8" />
-
-      <h2 className="text-2xl font-semibold mb-4">Riwayat Transaksi</h2>
-
-      {transactions.length === 0 ? (
-        <p className="text-gray-600">Belum ada transaksi untuk reservasi ini.</p>
-      ) : (
-        <ul className="space-y-4">
-          {transactions.map((tx) => (
-            <li
-              key={tx.id}
-              className="border p-4 rounded-md shadow-sm bg-gray-50 transition-colors duration-300"
-            >
-              <div>
-                <strong>Order ID:</strong> {tx.order_id}
-              </div>
-              <div>
-                <strong>Amount:</strong> Rp {tx.amount.toLocaleString()}
-              </div>
-              <div
-                className={
-                  tx.status === "success"
-                    ? "text-green-600 font-semibold"
-                    : tx.status === "pending"
-                    ? "text-yellow-600 font-semibold"
-                    : "text-red-600 font-semibold"
-                }
-              >
-                Status: {tx.status}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
