@@ -91,8 +91,10 @@ export default function TransactionsPage() {
           Tidak ada transaksi ditemukan.
         </div>
       ) : (
+        // Pembungkus overflow-x-auto agar scroll horizontal tetap ada
         <div className="overflow-x-auto shadow-md rounded-xl border border-gray-200 dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+          {/* Tabel untuk layar md ke atas */}
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900 hidden md:table">
             <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Order ID</th>
@@ -112,6 +114,29 @@ export default function TransactionsPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Tampilan card untuk layar kecil */}
+          <div className="md:hidden bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700 rounded-xl p-4">
+            {transactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="p-4 mb-4 last:mb-0 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+              >
+                <div className="mb-2">
+                  <span className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Order ID</span>
+                  <span className="text-sm text-gray-800 dark:text-gray-200">{tx.order_id}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Jumlah</span>
+                  <span className="text-sm text-gray-800 dark:text-gray-200">Rp {formatPrice(tx.amount)}</span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Status</span>
+                  <span className="text-sm">{statusBadge(tx.status)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

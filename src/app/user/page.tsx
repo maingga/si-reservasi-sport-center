@@ -8,7 +8,7 @@ import BookingList, { Booking } from "@/components/user/BookingList";
 interface Transaction {
   id: number;
   amount: number;
-  status?: string; // optional, tergantung dari struktur API kamu
+  status?: string;
 }
 
 interface User {
@@ -17,7 +17,6 @@ interface User {
   email: string;
 }
 
-// Format uang ke rupiah ringkas
 function formatRupiah(amount: number | string) {
   const num = typeof amount === "string" ? parseInt(amount) : amount;
   if (num >= 1_000_000) return `Rp ${(num / 1_000_000).toFixed(1)} Jt`;
@@ -25,7 +24,6 @@ function formatRupiah(amount: number | string) {
   return `Rp ${num.toLocaleString("id-ID")}`;
 }
 
-// Gabungkan tanggal dan jam menjadi Date
 function parseDateTime(dateStr: string, timeStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
   const [hour, minute] = timeStr.split(":").map(Number);
@@ -72,7 +70,7 @@ export default function UserDashboard() {
         }).length;
 
         const totalPembayaran = transaksi
-          // .filter((trx) => trx.status === "paid") // Aktifkan jika kamu pakai status
+          // .filter((trx) => trx.status === "paid") // Aktifkan jika perlu
           .reduce((sum, trx) => sum + Number(trx.amount), 0);
 
         setData({
@@ -91,12 +89,13 @@ export default function UserDashboard() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 px-6 py-8 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-8 truncate">
         Dashboard Pengguna
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {/* Grid responsive: 1 kolom di hp, 2 kolom di sm, 3 kolom di md ke atas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
         <CardStats title="Total Booking" value={data.totalBooking} />
         <CardStats title="Booking Aktif" value={data.activeBooking} />
         <CardStats
@@ -106,10 +105,13 @@ export default function UserDashboard() {
       </div>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 truncate">
           Booking Terakhir
         </h2>
-        <BookingList data={data.bookings} />
+        {/* Overflow scroll horizontal agar tabel tidak pecah di layar kecil */}
+        <div className="overflow-x-auto">
+          <BookingList data={data.bookings} />
+        </div>
       </section>
     </div>
   );
