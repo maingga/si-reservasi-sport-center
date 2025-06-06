@@ -13,6 +13,9 @@ interface Reservation {
   end_time: string;
   price: number | null;
   status: string;
+   is_dp: number;
+   dp_amount: number | null;
+   full_price: number | null;
 }
 
 interface SnapOptions {
@@ -66,67 +69,102 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
     }
   }, [token, reservationId, fetchReservation]);
 
-  const handlePayment = async () => {
-    if (!reservation) return;
+const handlePayment = async () => {
+  if (!reservation) return;
 
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        `${apiUrl}/payment/create`,
-        {
-          reservation_id: reservation.id,
-          amount: reservation.price ?? 0,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  setLoading(true);
+  try {
+    const fullPrice = reservation.full_price ?? 0;
+    const dpAmount = reservation.dp_amount ?? 0;
+    const isDP = reservation.is_dp === 1;
+    const status = reservation.status; // misalnya: 'pending', 'partially_paid', 'confirmed'
 
-      const snapToken = res.data.token;
-      if (!snapToken) {
-        toast.error("Gagal mendapatkan token pembayaran.");
+    let amountToPay = 0;
+    let newStatus = "pending";
+
+    if (!isDP) {
+      // Tanpa DP, bayar langsung penuh
+      amountToPay = fullPrice;
+      newStatus = "confirmed";
+    } else {
+      // Dengan DP
+      if (status === "pending") {
+        // Tahap 1: bayar DP dulu
+        amountToPay = fullPrice * 0.3; // DP 30%
+        newStatus = "partially_paid";
+      } else if (status === "partially_paid") {
+        // Tahap 2: pelunasan
+        amountToPay = fullPrice - dpAmount;
+        newStatus = "confirmed";
+      } else {
+        toast("Reservasi sudah lunas.");
         setLoading(false);
         return;
       }
-
-      if (typeof window !== "undefined" && window.snap) {
-        window.snap.pay(snapToken, {
-          onSuccess: async () => {
-            toast.success("Pembayaran berhasil! Mengupdate status...");
-
-            try {
-              await axios.put(
-                `${apiUrl}/reservations/${reservation.id}/status`,
-                { status: "confirmed" },
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                }
-              );
-              toast.success("Status reservasi diperbarui!");
-              window.location.href = "/user/transactions";
-            } catch (error) {
-              console.error(error);
-              toast.error("Gagal memperbarui status reservasi.");
-            }
-          },
-          onPending: () => {
-            toast("Pembayaran dalam proses, silakan selesaikan pembayaran.");
-          },
-          onError: () => {
-            toast.error("Terjadi kesalahan saat pembayaran.");
-          },
-          onClose: () => {
-            toast("Anda menutup popup pembayaran tanpa menyelesaikan.");
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Gagal memulai pembayaran.");
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // Kirim permintaan ke backend untuk membuat pembayaran
+    const res = await axios.post(
+      `${apiUrl}/payment/create`,
+      {
+        reservation_id: reservation.id,
+        amount: amountToPay,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const snapToken = res.data.token;
+    if (!snapToken) {
+      toast.error("Gagal mendapatkan token pembayaran.");
+      setLoading(false);
+      return;
+    }
+
+    // Panggil Midtrans Snap
+    if (typeof window !== "undefined" && window.snap) {
+      window.snap.pay(snapToken, {
+        onSuccess: async () => {
+          toast.success("Pembayaran berhasil! Menunggu konfirmasi...");
+
+          try {
+            await axios.put(
+              `${apiUrl}/reservations/${reservation.id}/update-status`,
+              {
+                status: newStatus,
+                amount: amountToPay,
+              },
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            toast.success("Status reservasi diperbarui.");
+          } catch (err) {
+            console.error("Gagal update status:", err);
+            toast.error("Gagal memperbarui status reservasi.");
+          }
+
+          window.location.href = "/user/transactions";
+        },
+        onPending: () => {
+          toast("Pembayaran dalam proses, silakan selesaikan pembayaran.");
+        },
+        onError: () => {
+          toast.error("Terjadi kesalahan saat pembayaran.");
+        },
+        onClose: () => {
+          toast("Anda menutup popup pembayaran tanpa menyelesaikan.");
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Gagal memulai pembayaran.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatPrice = (price: number | null | undefined) =>
     price !== null && price !== undefined ? price.toLocaleString() : "-";
@@ -139,6 +177,8 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
         return "Sudah Dikonfirmasi";
       case "cancelled":
         return "Dibatalkan";
+      case "partially_paid":
+        return "DP Dibayar, Menunggu Pelunasan";
       default:
         return status;
     }
@@ -152,6 +192,8 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100";
       case "cancelled":
         return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100";
+      case "partially_paid":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100";
       default:
         return "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200";
     }
@@ -223,7 +265,7 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
           </span>
         </div>
 
-        {reservation.status === "pending" && (
+        {(reservation.status === "pending" || reservation.status === "partially_paid") && (
           <button
             onClick={handlePayment}
             disabled={loading}
@@ -233,13 +275,19 @@ export default function PaymentClient({ reservationId }: PaymentClientProps) {
                 : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             }`}
           >
-            {loading ? "Memproses Pembayaran..." : "Bayar Sekarang"}
+            {loading
+              ? "Memproses Pembayaran..."
+              : reservation.status === "partially_paid"
+              ? "Lakukan Pelunasan"
+              : "Bayar Sekarang"}
           </button>
         )}
 
-        {reservation.status === "confirmed" && (
+        {(reservation.status === "confirmed" || reservation.status === "partially_paid") && (
           <div className="mt-4 text-green-700 dark:text-green-400 font-semibold">
-            Pembayaran telah diterima dan reservasi dikonfirmasi. Terima kasih!
+            {reservation.status === "confirmed"
+              ? "Pembayaran telah diterima dan reservasi dikonfirmasi. Terima kasih!"
+              : "DP telah dibayar, silakan lakukan pelunasan."}
           </div>
         )}
 

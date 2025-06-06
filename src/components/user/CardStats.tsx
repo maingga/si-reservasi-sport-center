@@ -10,15 +10,15 @@ export default function CardStats({ title, value }: Props) {
         bg-white dark:bg-gray-800 
         border border-gray-200 dark:border-gray-700
         rounded-xl
-        p-5
+        p-5 sm:p-6
         shadow-sm dark:shadow-none
         hover:shadow-md dark:hover:shadow-lg
         transition-shadow duration-300
         cursor-default
       "
     >
-      <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-      <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-1 truncate max-w-full">
+      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 truncate">{title}</p>
+      <p className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mt-1 truncate max-w-full">
         {value}
       </p>
     </div>

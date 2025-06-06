@@ -30,7 +30,7 @@ export default function BookingList({ data }: { data: Booking[] }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 overflow-x-auto">
       <table className="w-full text-sm text-left text-gray-700 dark:text-gray-300 border-collapse border border-gray-200 dark:border-gray-700">
-        <thead className="bg-gray-100 dark:bg-gray-700">
+        <thead className="bg-gray-100 dark:bg-gray-700 hidden md:table-header-group">
           <tr>
             <th className="p-3 border border-gray-200 dark:border-gray-600">Lapangan</th>
             <th className="p-3 border border-gray-200 dark:border-gray-600">Tanggal</th>
@@ -38,18 +38,26 @@ export default function BookingList({ data }: { data: Booking[] }) {
             <th className="p-3 border border-gray-200 dark:border-gray-600">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="block md:table-row-group">
           {data.map((booking) => (
             <tr
               key={booking.id}
-              className="border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="block md:table-row border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4 md:mb-0"
             >
-              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.lapangan?.name || "-"}</td>
-              <td className="p-3 border border-gray-200 dark:border-gray-600">{booking.reservation_date}</td>
-              <td className="p-3 border border-gray-200 dark:border-gray-600">
+              <td className="block md:table-cell p-3 border border-gray-200 dark:border-gray-600">
+                <span className="md:hidden font-semibold">Lapangan: </span>
+                {booking.lapangan?.name || "-"}
+              </td>
+              <td className="block md:table-cell p-3 border border-gray-200 dark:border-gray-600">
+                <span className="md:hidden font-semibold">Tanggal: </span>
+                {booking.reservation_date}
+              </td>
+              <td className="block md:table-cell p-3 border border-gray-200 dark:border-gray-600">
+                <span className="md:hidden font-semibold">Jam: </span>
                 {booking.start_time} - {booking.end_time}
               </td>
-              <td className="p-3 border border-gray-200 dark:border-gray-600">
+              <td className="block md:table-cell p-3 border border-gray-200 dark:border-gray-600">
+                <span className="md:hidden font-semibold">Status: </span>
                 <span
                   className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                     booking.status

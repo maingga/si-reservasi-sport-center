@@ -8,7 +8,11 @@ interface UserData {
   photo_url: string | null;
 }
 
-export default function Topbar() {
+interface TopbarProps {
+  onToggleSidebar: () => void;
+}
+
+export default function Topbar({ onToggleSidebar }: TopbarProps) {
   const [user, setUser] = useState<UserData>({
     name: "Pengguna",
     photo_url: null,
@@ -16,7 +20,6 @@ export default function Topbar() {
 
   const [darkMode, setDarkMode] = useState(false);
 
-  // Load user data
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -48,7 +51,6 @@ export default function Topbar() {
 
     fetchUser();
 
-    // Load theme preference from localStorage
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       setDarkMode(true);
@@ -56,7 +58,6 @@ export default function Topbar() {
     }
   }, []);
 
-  // Toggle dark mode & save preference
   const toggleDarkMode = () => {
     if (darkMode) {
       document.documentElement.classList.remove("dark");
@@ -77,9 +78,29 @@ export default function Topbar() {
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow px-6 py-4 flex justify-between items-center transition-colors duration-300">
-      <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-        Selamat Datang, {user.name}!
-      </h2>
+      <div className="flex items-center gap-4">
+        {/* Tombol Hamburger untuk toggle sidebar */}
+        <button
+          onClick={onToggleSidebar}
+          aria-label="Toggle Sidebar"
+          className="md:hidden p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        >
+          <svg
+            className="w-6 h-6 text-gray-800 dark:text-gray-200"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+          Selamat Datang, {user.name}!
+        </h2>
+      </div>
 
       <div className="flex items-center gap-4">
         <button
@@ -88,7 +109,6 @@ export default function Topbar() {
           className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
         >
           {darkMode ? (
-            // Sun Icon for Light Mode
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6 text-yellow-400"
@@ -104,7 +124,6 @@ export default function Topbar() {
               />
             </svg>
           ) : (
-            // Moon Icon for Dark Mode
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6 text-gray-800 dark:text-gray-200"
