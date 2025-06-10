@@ -229,26 +229,36 @@ export default function BookingPage() {
 
                               <TableCell className="px-4 py-3 text-start">
                                 <div className="flex gap-2 flex-wrap">
-                                  {statusLower === "pending" ? (
-                                    <Button
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => handleDelete(booking.id)}
-                                    >
-                                      Batalkan
-                                    </Button>
-                                  ) : statusLower === "partially_paid" ? (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleContinuePayment(booking.id)}
-                                    >
-                                      Lanjutkan Pembayaran
-                                    </Button>
-                                  ) : (
-                                    <span className="text-gray-500 dark:text-gray-400 italic text-sm px-3 py-1">
-                                      {isPaid ? "Sudah dibayar" : "Tidak bisa dibatalkan"}
-                                    </span>
-                                  )}
+                                  {statusLower === "pending" ?
+                                    (
+                                      <>
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          onClick={() => handleDelete(booking.id)}
+                                        >
+                                          Batalkan
+                                        </Button>
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() => handleContinuePayment(booking.id)}
+                                        >
+                                          Lanjutkan Pembayaran
+                                        </Button>
+                                      </>
+                                    ) : statusLower === "partially_paid" ? (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleContinuePayment(booking.id)}
+                                      >
+                                        Lanjutkan Pembayaran
+                                      </Button>
+                                    ) : (
+                                      <span className="text-gray-500 dark:text-gray-400 italic text-sm px-3 py-1">
+                                        {isPaid ? "Sudah dibayar" : "Tidak bisa dibatalkan"}
+                                      </span>
+                                    )}
                                 </div>
                               </TableCell>
                             </TableRow>
