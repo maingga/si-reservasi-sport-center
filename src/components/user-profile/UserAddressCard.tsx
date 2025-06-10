@@ -92,9 +92,9 @@ export default function UserAddressCard({ user }: UserAddressCardProps) {
   return (
     <div
       className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm
-                 dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300 max-w-sm"
+                 dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300 max-w-sm mx-auto"
     >
-      <p className="mb-4 font-semibold text-gray-900 dark:text-gray-100">Foto Profil</p>
+      <p className="mb-4 font-semibold text-gray-900 dark:text-gray-100 text-center">Foto Profil</p>
 
       {preview ? (
         <div
@@ -137,12 +137,12 @@ export default function UserAddressCard({ user }: UserAddressCardProps) {
                    file:bg-blue-50 file:text-blue-700
                    hover:file:bg-blue-100
                    dark:file:bg-blue-900 dark:file:text-blue-300 dark:hover:file:bg-blue-800
-                   mb-4"
+                   mb-4 mx-auto"
         disabled={loading}
       />
 
       {error && (
-        <p className="mb-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="mb-2 text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
       )}
 
       <button
@@ -152,7 +152,7 @@ export default function UserAddressCard({ user }: UserAddressCardProps) {
                     ${photo && !loading
                       ? 'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
                       : 'bg-green-400 cursor-not-allowed'}
-                    transition-colors duration-200`}
+                    transition-colors duration-200 mx-auto`}
       >
         {loading ? 'Uploading...' : 'Upload'}
       </button>
