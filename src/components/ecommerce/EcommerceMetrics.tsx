@@ -30,8 +30,8 @@ export const EcommerceMetrics = () => {
         setMetrics({
           customers: data.total_users,
           orders: data.total_reservations,
-          customersChange: 11.01, // Anda bisa mengambil ini dari API jika tersedia
-          ordersChange: -9.05     // Anda bisa mengambil ini dari API jika tersedia
+          customersChange: data.user_growth, // 11.01, 
+          ordersChange: data.reservation_change // -9.05    
         });
       } catch (error) {
         console.error('Error fetching data:', error);
