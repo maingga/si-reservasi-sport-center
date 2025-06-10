@@ -16,17 +16,17 @@ export default function Ecommerce() {
         <MonthlySalesChart />
       </div>
       <div className="col-span-12 xl:col-span-5">
-        <MonthlyTarget />
+        <RecentOrders />
       </div>
-      <div className="col-span-12">
+      {/* <div className="col-span-12">
         <StatisticsChart />
       </div>
       <div className="col-span-12 xl:col-span-5">
         <DemographicCard />
-      </div>
-      <div className="col-span-12 xl:col-span-7">
+      </div> */}
+      {/* <div className="col-span-12 xl:col-span-7">
         <RecentOrders />
-      </div>
+      </div> */}
     </div>
   );
 }
