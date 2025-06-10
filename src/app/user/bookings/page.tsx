@@ -167,106 +167,104 @@ export default function BookingPage() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Daftar Booking Saya" />
-      <div className="space-y-">
+      <div className="space-y-6">
         <ComponentCard title="Daftar Booking">
           {bookings.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600 dark:text-gray-400">Tidak ada booking ditemukan.</p>
             </div>
           ) : (
-            <div className="md:col-span-5 -mt-4">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-                <div className="max-w-full overflow-x-auto">
-                  <div className="min-w-[900px]">
-                    <Table>
-                      <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                        <TableRow>
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                            Lapangan
-                          </TableCell>
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                            Tanggal
-                          </TableCell>
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                            Waktu
-                          </TableCell>
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                            Status
-                          </TableCell>
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                            Aksi
-                          </TableCell>
-                        </TableRow>
-                      </TableHeader>
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <div className="max-w-full overflow-x-auto">
+                <div className="min-w-full">
+                  <Table>
+                    <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                      <TableRow>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                          Lapangan
+                        </TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                          Tanggal
+                        </TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                          Waktu
+                        </TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                          Status
+                        </TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                          Aksi
+                        </TableCell>
+                      </TableRow>
+                    </TableHeader>
 
-                      <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {bookings.map((booking) => {
-                          const statusLower = booking.status.toLowerCase();
-                          const isPaid = paidStatuses.includes(statusLower);
+                    <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                      {bookings.map((booking) => {
+                        const statusLower = booking.status.toLowerCase();
+                        const isPaid = paidStatuses.includes(statusLower);
 
-                          return (
-                            <TableRow key={booking.id}>
-                              <TableCell className="px-5 py-4 text-start">
-                                <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                                  {booking.lapangan?.name || "Lapangan tidak diketahui"}
-                                </span>
-                                <span className="block text-gray-500 text-theme-xs dark:text-gray-400">Booking ID #{booking.id}</span>
-                              </TableCell>
+                        return (
+                          <TableRow key={booking.id}>
+                            <TableCell className="px-5 py-4 text-start">
+                              <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                {booking.lapangan?.name || "Lapangan tidak diketahui"}
+                              </span>
+                              <span className="block text-gray-500 text-theme-xs dark:text-gray-400">Booking ID #{booking.id}</span>
+                            </TableCell>
 
-                              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                {format(parseISO(booking.reservation_date), "dd MMMM yyyy")}
-                              </TableCell>
+                            <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                              {format(parseISO(booking.reservation_date), "dd MMMM yyyy")}
+                            </TableCell>
 
-                              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                <span className="text-sm">{booking.start_time} - {booking.end_time}</span>
-                              </TableCell>
+                            <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                              <span className="text-sm">{booking.start_time} - {booking.end_time}</span>
+                            </TableCell>
 
-                              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                <Badge size="sm" color={getStatusColor(booking.status)}>
-                                  {getStatusLabel(booking.status)}
-                                </Badge>
-                              </TableCell>
+                            <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                              <Badge size="sm" color={getStatusColor(booking.status)}>
+                                {getStatusLabel(booking.status)}
+                              </Badge>
+                            </TableCell>
 
-                              <TableCell className="px-4 py-3 text-start">
-                                <div className="flex gap-2 flex-wrap">
-                                  {statusLower === "pending" ?
-                                    (
-                                      <>
-                                        <Button
-                                          variant="destructive"
-                                          size="sm"
-                                          onClick={() => handleDelete(booking.id)}
-                                        >
-                                          Batalkan
-                                        </Button>
-                                        <Button
-                                          variant="default"
-                                          size="sm"
-                                          onClick={() => handleContinuePayment(booking.id)}
-                                        >
-                                          Lanjutkan Pembayaran
-                                        </Button>
-                                      </>
-                                    ) : statusLower === "partially_paid" ? (
+                            <TableCell className="px-4 py-3 text-start">
+                              <div className="flex gap-2 flex-wrap">
+                                {statusLower === "pending" ?
+                                  (
+                                    <>
                                       <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => handleDelete(booking.id)}
+                                      >
+                                        Batalkan
+                                      </Button>
+                                      <Button
+                                        variant="default"
                                         size="sm"
                                         onClick={() => handleContinuePayment(booking.id)}
                                       >
                                         Lanjutkan Pembayaran
                                       </Button>
-                                    ) : (
-                                      <span className="text-gray-500 dark:text-gray-400 italic text-sm px-3 py-1">
-                                        {isPaid ? "Sudah dibayar" : "Tidak bisa dibatalkan"}
-                                      </span>
-                                    )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                                    </>
+                                  ) : statusLower === "partially_paid" ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleContinuePayment(booking.id)}
+                                    >
+                                      Lanjutkan Pembayaran
+                                    </Button>
+                                  ) : (
+                                    <span className="text-gray-500 dark:text-gray-400 italic text-sm px-3 py-1">
+                                      {isPaid ? "Sudah dibayar" : "Tidak bisa dibatalkan"}
+                                    </span>
+                                  )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </div>
