@@ -45,9 +45,9 @@ export default function LapanganListPage() {
     return path ? `http://localhost:8000/storage/${path}` : "/default.jpg";
   };
 
-const handleBooking = (lapanganId: number) => {
-  router.push(`/user/lapangan/${lapanganId}/booking`);
-};
+  const handleBooking = (lapanganId: number) => {
+    router.push(`/user/lapangan/${lapanganId}/booking`);
+  };
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-10 px-4">
@@ -56,37 +56,41 @@ const handleBooking = (lapanganId: number) => {
         <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-white">Daftar Lapangan</h1>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {fetching ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 h-48 rounded-md" />
+                <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 h-48 rounded-lg" />
               ))
             ) : (
               lapanganList.map((lap) => (
                 <div
                   key={lap.id}
-                  className="relative group cursor-pointer border border-gray-300 rounded-lg p-3 shadow-sm transition hover:ring-2"
+                  className="relative group border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02] bg-white dark:bg-gray-800"
                 >
                   <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleBooking(lap.id)}
-                      className="inline-flex items-center gap-2 px-3 py-1 rounded bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold shadow hover:scale-105 hover:shadow-lg transition"
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold shadow hover:scale-105 transition-transform"
                     >
                       Booking
                     </button>
                   </div>
                   <Link href={`/user/lapangan/${lap.id}`}>
-                    <Image
-                      src={getImageUrl(lap.photo)}
-                      alt={lap.name}
-                      width={500}
-                      height={300}
-                      className="w-full h-40 object-cover rounded-md mb-2"
-                      unoptimized
-                    />
-                    <h3 className="text-md font-medium text-center text-gray-800 dark:text-white">{lap.name}</h3>
-                    <p className="text-center text-sm text-gray-600 dark:text-gray-300">
-                      Harga per jam: Rp{lap.price.toLocaleString("id-ID")}
+                    <div className="overflow-hidden rounded-md mb-3">
+                      <Image
+                        src={getImageUrl(lap.photo)}
+                        alt={lap.name}
+                        width={500}
+                        height={300}
+                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                        unoptimized
+                      />
+                    </div>
+                    <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-white">
+                      {lap.name}
+                    </h3>
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      Harga per jam: <span className="font-medium text-indigo-600 dark:text-indigo-400">Rp{lap.price.toLocaleString("id-ID")}</span>
                     </p>
                   </Link>
                 </div>
