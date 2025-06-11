@@ -45,7 +45,6 @@ const navItems: NavItem[] = [
     icon: <ListIcon />,
     subItems: [
       { name: "View All Reservations", path: "/admin/reservations" }, // Sesuaikan path untuk reservasi
-      { name: "Create Reservation", path: "/admin/reservations/create" },
     ],
   },
   {
@@ -53,7 +52,6 @@ const navItems: NavItem[] = [
     icon: <BoxCubeIcon />,
     subItems: [
       { name: "Payment History", path: "/admin/transactions" }, // Sesuaikan path untuk transaksi
-      { name: "Create Payment", path: "/admin/payment/create" },
     ],
   },
 ];

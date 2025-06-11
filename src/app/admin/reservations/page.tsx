@@ -12,7 +12,6 @@ import {
   TableRow,
 } from '../../../components/ui/table'
 import Badge from '../../../components/ui/badge/Badge'
-import Image from 'next/image'
 import Swal from 'sweetalert2'
 import { Button } from '../../../components/ui/button'
 
@@ -26,7 +25,6 @@ interface Reservation {
   }
   user?: {
     name: string
-    image?: string
   }
   status: string
 }
@@ -153,20 +151,11 @@ const AdminReservationList = () => {
                       {reservations.map((res) => (
                         <TableRow key={res.id}>
                           <TableCell className="px-5 py-4 text-start">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
-                                {res.user?.image ? (
-                                  <Image width={40} height={40} src={res.user.image} alt={res.user.name} />
-                                ) : (
-                                  <span className="w-full h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-300">?</span>
-                                )}
-                              </div>
-                              <div>
-                                <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                                  {res.user?.name ?? 'Tidak diketahui'}
-                                </span>
-                                <span className="block text-gray-500 text-theme-xs dark:text-gray-400">User ID #{res.id}</span>
-                              </div>
+                            <div>
+                              <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                {res.user?.name ?? 'Tidak diketahui'}
+                              </span>
+                              <span className="block text-gray-500 text-theme-xs dark:text-gray-400">User ID #{res.id}</span>
                             </div>
                           </TableCell>
 

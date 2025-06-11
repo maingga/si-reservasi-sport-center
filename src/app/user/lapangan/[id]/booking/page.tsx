@@ -47,10 +47,14 @@ export default function BookingPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLapangan(res.data);
-      } catch (err) {
-        toast.error("Gagal mengambil data lapangan.");
-        router.push("/lapangan");
-      } finally {
+      } catch (err: unknown) {
+  if (err instanceof Error) {
+    toast.error(`Error fetching lapangan data: ${err.message}`);
+    router.push("/lapangan");
+  } else {
+    console.error("Unknown error:", err);
+  }
+} finally {
         setFetching(false);
       }
     };
@@ -58,33 +62,39 @@ export default function BookingPage() {
     if (token) fetchLapangan();
   }, [lapanganId, token, router]);
 
-  useEffect(() => {
-    if (!lapangan || !jamMulai || !jamSelesai) {
-      setTotalHarga(null);
-      return;
-    }
+useEffect(() => {
+  if (!lapangan || !jamMulai || !jamSelesai) {
+    setTotalHarga(null);
+    return;
+  }
 
-    const startDecimal = jamMulai.getHours() + jamMulai.getMinutes() / 60;
-    const endDecimal = jamSelesai.getHours() + jamSelesai.getMinutes() / 60;
+  const startDecimal = jamMulai.getHours() + jamMulai.getMinutes() / 60;
+  const endDecimal = jamSelesai.getHours() + jamSelesai.getMinutes() / 60;
 
-    if (endDecimal <= startDecimal || endDecimal > 22) {
-      setTotalHarga(null);
-      return;
-    }
+  if (endDecimal <= startDecimal || endDecimal > 22) {
+    setTotalHarga(null);
+    return;
+  }
 
-    let total = 0;
+  let total = 0;
 
-    for (let hour = Math.floor(startDecimal); hour < Math.ceil(endDecimal); hour++) {
-      const segmentStart = Math.max(hour, startDecimal);
-      const segmentEnd = Math.min(hour + 1, endDecimal);
-      const segmentDuration = segmentEnd - segmentStart;
-      const isMalam = segmentStart >= 18;
-      const hargaPerJam = lapangan.price + (isMalam ? 10000 : 0);
-      total += hargaPerJam * segmentDuration;
-    }
+  for (let hour = Math.floor(startDecimal); hour < Math.ceil(endDecimal); hour++) {
+    const segmentStart = Math.max(hour, startDecimal);
+    const segmentEnd = Math.min(hour + 1, endDecimal);
+    const segmentDuration = segmentEnd - segmentStart;
 
-    setTotalHarga(Math.round(total));
-  }, [lapangan, jamMulai, jamSelesai]);
+    // Pastikan harga dasar adalah number
+    const hargaDasar = typeof lapangan.price === "string" ? parseFloat(lapangan.price) : lapangan.price;
+    const isMalam = hour >= 18;
+    const hargaPerJam = hargaDasar + (isMalam ? 10000 : 0);
+
+    total += hargaPerJam * segmentDuration;
+
+    console.log(`Jam ${hour}: Durasi ${segmentDuration.toFixed(2)} jam, Harga/jam Rp${hargaPerJam}, Subtotal Rp${(hargaPerJam * segmentDuration).toFixed(2)}`);
+  }
+
+  setTotalHarga(Math.round(total));
+}, [lapangan, jamMulai, jamSelesai]);
 
   useEffect(() => {
     const checkAvailability = async () => {

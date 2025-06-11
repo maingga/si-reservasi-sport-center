@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 
 const Footer = () => {
@@ -13,45 +14,45 @@ const Footer = () => {
             <Image
               src="/images/football.png"
               alt="Sport Center Logo"
-              width={48} // Atur width sesuai kebutuhan
-              height={48} // Atur height sesuai kebutuhan
-              priority // Optimasi LCP dengan priority
+              width={48}
+              height={48}
+              priority
             />
             <h2 className="text-2xl font-bold">Sport Center</h2>
           </div>
           <nav className="mt-4 md:mt-0">
             <ul className="flex space-x-6 text-gray-300 text-lg">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/#"
                   className="hover:text-red-500 transition duration-300"
                 >
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#features"
+                <Link
+                  href="/#features"
                   className="hover:text-red-500 transition duration-300"
                 >
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#testimonial"
+                <Link
+                  href="/#LandingLapanganPreview"
+                  className="hover:text-red-500 transition duration-300"
+                >
+                  Preview Lapangan
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/#testimonial"
                   className="hover:text-red-500 transition duration-300"
                 >
                   Testimonial
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#contact"
-                  className="hover:text-red-500 transition duration-300"
-                >
-                  Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
@@ -67,19 +68,25 @@ const Footer = () => {
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a
-              href="#"
+              href="https://www.facebook.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-300 hover:text-blue-500 transition duration-300"
             >
               <FaFacebook size={24} />
             </a>
             <a
-              href="#"
+              href="https://twitter.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-300 hover:text-sky-400 transition duration-300"
             >
               <FaTwitter size={24} />
             </a>
             <a
-              href="#"
+              href="https://www.instagram.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-300 hover:text-red-500 transition duration-300"
             >
               <FaInstagram size={24} />

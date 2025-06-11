@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaHome, FaRocket, FaCommentDots, FaBars, FaTimes } from "react-icons/fa";
+import {
+  FaHome,
+  FaRocket,
+  FaCommentDots,
+  FaBars,
+  FaTimes,
+  FaFutbol,
+} from "react-icons/fa";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 
-const Typewriter = dynamic(() => import("react-simple-typewriter").then(mod => mod.Typewriter), { ssr: false });
+const Typewriter = dynamic(
+  () => import("react-simple-typewriter").then((mod) => mod.Typewriter),
+  { ssr: false }
+);
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,7 +38,7 @@ const Header: React.FC = () => {
       }`}
     >
       <nav className="container mx-auto flex justify-between items-center">
-        {/* Logo & Animasi Typewriter */}
+        {/* Logo & Typewriter */}
         <div className="flex items-center space-x-3">
           <Image
             src="/images/football.png"
@@ -55,19 +65,34 @@ const Header: React.FC = () => {
         <ul className="hidden md:flex space-x-8 text-lg font-semibold text-white">
           <li className="flex items-center space-x-2 group">
             <FaHome className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition duration-300" />
-            <Link href="#" className="hover:text-red-500 transition duration-300">
+            <Link href="/" className="hover:text-red-500 transition duration-300">
               Home
             </Link>
           </li>
           <li className="flex items-center space-x-2 group">
             <FaRocket className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition duration-300" />
-            <Link href="#features" className="hover:text-red-500 transition duration-300">
+            <Link
+              href="/#features"
+              className="hover:text-red-500 transition duration-300"
+            >
               Features
             </Link>
           </li>
           <li className="flex items-center space-x-2 group">
+            <FaFutbol className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition duration-300" />
+            <Link
+              href="/#LandingLapanganPreview"
+              className="hover:text-red-500 transition duration-300"
+            >
+              Preview Lapangan
+            </Link>
+          </li>
+          <li className="flex items-center space-x-2 group">
             <FaCommentDots className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition duration-300" />
-            <Link href="#testimonial" className="hover:text-red-500 transition duration-300">
+            <Link
+              href="/#testimonial"
+              className="hover:text-red-500 transition duration-300"
+            >
               Testimonial
             </Link>
           </li>
@@ -88,22 +113,46 @@ const Header: React.FC = () => {
           menuOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 md:hidden flex flex-col items-center justify-center space-y-8`}
       >
-        <button className="absolute top-6 right-6 text-white text-2xl" onClick={() => setMenuOpen(false)}>
+        <button
+          className="absolute top-6 right-6 text-white text-2xl"
+          onClick={() => setMenuOpen(false)}
+        >
           <FaTimes />
         </button>
         <ul className="text-white text-2xl space-y-6">
           <li>
-            <Link href="#" onClick={() => setMenuOpen(false)} className="hover:text-red-500 transition duration-300">
+            <Link
+              href="/"
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-red-500 transition duration-300"
+            >
               Home
             </Link>
           </li>
           <li>
-            <Link href="#features" onClick={() => setMenuOpen(false)} className="hover:text-red-500 transition duration-300">
+            <Link
+              href="/#features"
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-red-500 transition duration-300"
+            >
               Features
             </Link>
           </li>
           <li>
-            <Link href="#testimonial" onClick={() => setMenuOpen(false)} className="hover:text-red-500 transition duration-300">
+            <Link
+              href="/preview"
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-red-500 transition duration-300"
+            >
+              Preview Lapangan
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/#testimonial"
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-red-500 transition duration-300"
+            >
               Testimonial
             </Link>
           </li>
